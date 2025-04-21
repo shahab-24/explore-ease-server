@@ -4,7 +4,7 @@ const app = express();
 const cors = require('cors');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan')
-const port = process.env.PORT || 7000;
+const port = process.env.PORT || 6000;
 const { MongoClient, ServerApiVersion } = require('mongodb');
 
 app.use(express.json());
@@ -14,7 +14,7 @@ app.use(morgan('dev'))
 
 
 
-const uri = `mongodb+srv://${DB_USER}:${DB_PASS}@cluster0.3jtn0.mongodb.net/?appName=Cluster0`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.3jtn0.mongodb.net/?appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -27,6 +27,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
+        const touristsCollection = client.db('ExploreEase').collection('tourists')
 
         app.get('/tourists', async (req, res) => {
                 res.send('hello from tourists route')
