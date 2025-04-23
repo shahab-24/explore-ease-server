@@ -6,13 +6,20 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan')
 const port = process.env.PORT || 6000;
 const { MongoClient, ServerApiVersion } = require('mongodb');
+const jwtRoute = require('./routes/jwtRoute.js')
+const verifyToken = require('./middlewares/verifyToken.js')
 
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors())
+app.use(cors(
+        {
+                origin: ['https //localhost 5173'],
+                credentials: true,
+        }
+))
 app.use(morgan('dev'))
 
-
+app.use('/jwt', jwtRoute)
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.3jtn0.mongodb.net/?appName=Cluster0`;
 
