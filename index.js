@@ -13,7 +13,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(cors(
         {
-                origin: ['https //localhost 5173'],
+                origin: ['https://localhost:5173'],
                 credentials: true,
         }
 ))
@@ -34,10 +34,25 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-        const touristsCollection = client.db('ExploreEase').collection('tourists')
+        const usersCollection = client.db('ExploreEase').collection('users')
 
         app.get('/tourists', async (req, res) => {
                 res.send('hello from tourists route')
+        })
+
+        app.post('/users', async (req, res) => {
+                const {email, name, image} = req.body;
+                if(!email){return res.status(400).json({message: 'Email is required'})}
+                const existingUser = await usersCollection.findOne({email})
+
+                if(existingUser){
+                        return res.status(200).json({message: "user already exist", user: existingUser})
+                }
+
+                
+                        const result = await usersCollection.insertOne({email,name,image})
+                res.status(201).json({message: 'user created', usreId: result.insertedId})
+                
         })
 
     await client.db("admin").command({ ping: 1 });
