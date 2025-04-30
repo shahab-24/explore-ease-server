@@ -3,13 +3,13 @@ const jwt = require('jsonwebtoken');
 const router = express.Router();
 require('dotenv').config();
 
-router.post('/jwt', (req, res) => {
-        const {email} = req.body;
-        if(!email) {
+router.post('/', (req, res) => {
+        const user = req.body;
+        if(!user?.email) {
                 return res.status(400).json({message: 'Email is required'})
         }
 
-        const token = jwt.sign({email}, process.env.JWT_SECRET_KEY, {
+        const token = jwt.sign(user, process.env.JWT_SECRET_KEY, {
                 expiresIn: '1h'
         })
 
@@ -18,7 +18,7 @@ router.post('/jwt', (req, res) => {
                 secure: process.env.NODE_ENV === "production",
                 sameSite: 'strict',
         });
-        res.json({success: true})
+        res.json({token})
 })
 
 router.get('/logout', (req, res) => {
