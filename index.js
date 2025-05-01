@@ -37,44 +37,23 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const usersCollection = client.db("ExploreEaseDB").collection("users");
-    const packagesCollection = client.db("ExploreEaseDB").collection("packages");
-    const tourGuidesCollection = client.db("ExploreEaseDB").collection("tourGuides");
+    const packagesCollection = client
+      .db("ExploreEaseDB")
+      .collection("packages");
+    const tourGuidesCollection = client
+      .db("ExploreEaseDB")
+      .collection("tourGuides");
+    const touristStoryCollection = client
+      .db("ExploreEaseDB")
+      .collection("touristStories");
 
+    // user related apis========================================
+    app.get("/users", async (req, res) => {
+      const result = await usersCollection.find().toArray();
+      res.send(result);
+    });
 
-
-// packages related Apis=======================================
-app.get('/package', async (req, res) => {
-        try {
-          const result = await packagesCollection.aggregate([{ $sample: { size: 3 } }]).toArray();
-          res.json(result); // always prefer res.json for APIs
-        } catch (error) {
-          console.error("Error in /packages:", error);
-          res.status(500).json({ message: "Failed to fetch packages" });
-        }
-      });
-
-
-//     tourGuides related Apis================================
-app.get('/tourGuides', async (req, res) => {
-        try {
-          const result = await tourGuidesCollection.aggregate([{ $sample: { size: 3 } }]).toArray();
-          res.json(result); // always prefer res.json for APIs
-        } catch (error) {
-          console.error("Error in /tourGuides:", error);
-          res.status(500).json({ message: "Failed to fetch tourGuides" });
-        }
-      });
-
-
-
-//     tourist related Apis===================================
-    
-app.get("/users", async (req, res) => {
-        const result = await usersCollection.find().toArray();
-        res.send(result);
-      });
-
-app.post("/users", async (req, res) => {
+    app.post("/users", async (req, res) => {
       const user = req.body;
       const email = user?.email;
 
@@ -104,10 +83,49 @@ app.post("/users", async (req, res) => {
       }
     });
 
-//     await client.db("admin").command({ ping: 1 });
-//     console.log(
-//       "Pinged your deployment. You successfully connected to MongoDB!"
-//     );
+    // packages related Apis=======================================
+    app.get("/package", async (req, res) => {
+      try {
+        const result = await packagesCollection
+          .aggregate([{ $sample: { size: 3 } }])
+          .toArray();
+        res.json(result); // always prefer res.json for APIs
+      } catch (error) {
+        console.error("Error in /packages:", error);
+        res.status(500).json({ message: "Failed to fetch packages" });
+      }
+    });
+
+    //     tourGuides related Apis==============================
+    app.get("/tourGuides", async (req, res) => {
+      try {
+        const result = await tourGuidesCollection
+          .aggregate([{ $sample: { size: 3 } }])
+          .toArray();
+        res.json(result); // always prefer res.json for APIs
+      } catch (error) {
+        console.error("Error in /tourGuides:", error);
+        res.status(500).json({ message: "Failed to fetch tourGuides" });
+      }
+    });
+
+   
+
+    //     tourist stories related Apis========================
+    app.get("/stories", async (req, res) => {
+      const stories = await touristStoryCollection
+        .aggregate([{ $sample: { size: 4 } }])
+        .toArray();
+      res.json(stories);
+    });
+    app.get("/all-stories", async (req, res) => {
+      const stories = await touristStoryCollection.find()
+        .toArray();
+      res.json(stories);
+    });
+
+   
+    //     );
   } finally {
   }
 }
