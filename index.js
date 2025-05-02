@@ -5,7 +5,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 const port = process.env.PORT || 8000;
-const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId, ReturnDocument } = require("mongodb");
 const jwtRoute = require("./routes/jwtRoute.js");
 const verifyToken = require("./middlewares/verifyToken.js");
 
@@ -100,6 +100,17 @@ async function run() {
       }
     });
 
+    app.get('/trips', async (req, res) => {
+        const result = await packagesCollection.find().toArray()
+        res.json(result)
+    })
+    app.get('/trips/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await packagesCollection.findOne(query)
+        res.json(result)
+    })
+
     app.get('/packages/:id', async (req, res) => {
         const id = req.params.id
         const query = {_id: new ObjectId(id)}
@@ -145,12 +156,38 @@ async function run() {
         .toArray();
       res.json(stories);
     });
+    app.get("/stories/:id", async (req, res) => {
+        const id = req.params.id;
+        const query = {_id: new ObjectId(id)}
+        const result = await touristStoryCollection.findOne(query)
+        res.json(result)
+      
+    });
     
     app.get("/all-stories", async (req, res) => {
       const stories = await touristStoryCollection.find()
         .toArray();
       res.json(stories);
     });
+
+    app.patch('/stories/:id/like', async (req, res) => {
+        const storyId = req.params.id;
+        const {userEmail} = req.body;
+        const query = {_id: new ObjectId(storyId)}
+        const story = await touristStoryCollection.findOne(query)
+        if(!story.likedBy?.includes(userEmail)){
+                const updatedStory = {$inc: {likes: 1}, 
+        $push: {likedBy: userEmail}}
+
+        const result = await touristStoryCollection.updateOne(query, updatedStory, {returnDocument: "after"})
+                
+                
+         return res.json({likes: result.value.likes})
+        } else{
+                return res.json({likes: story.likes})
+        }
+        
+    })
 
 
 //     bookings related Apis===============================
