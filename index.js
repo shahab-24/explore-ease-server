@@ -47,6 +47,10 @@ async function run() {
       .db("ExploreEaseDB")
       .collection("touristStories");
 
+    const bookingsCollection = client
+      .db("ExploreEaseDB")
+      .collection("bookings");
+
     // user related apis========================================
     app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
@@ -147,6 +151,21 @@ async function run() {
         .toArray();
       res.json(stories);
     });
+
+
+//     bookings related Apis===============================
+app.get('/my-bookings/:id', async (req, res) => {
+        const id = req.params.id;
+        const query =  {_id: new ObjectId(id)}
+        const result = await bookingsCollection.findOne(query)
+        res.json(result)
+})
+app.post('/bookings', async (req, res) => {
+        const booking = req.body;
+        const result = await bookingsCollection.insertOne({...booking, status: 'pending'})
+        res.json(result)
+})
+
 
    
     //     );
