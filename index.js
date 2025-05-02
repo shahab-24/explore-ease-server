@@ -5,7 +5,7 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 const port = process.env.PORT || 8000;
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 const jwtRoute = require("./routes/jwtRoute.js");
 const verifyToken = require("./middlewares/verifyToken.js");
 
@@ -96,18 +96,41 @@ async function run() {
       }
     });
 
+    app.get('/packages/:id', async (req, res) => {
+        const id = req.params.id
+        const query = {_id: new ObjectId(id)}
+        const result = await packagesCollection.findOne(query)
+        res.json(result)
+    })
+
     //     tourGuides related Apis==============================
     app.get("/tourGuides", async (req, res) => {
+
       try {
-        const result = await tourGuidesCollection
+        const mode = req.query.mode;
+        let result;
+        if(mode === 'random'){
+                 result = await tourGuidesCollection
           .aggregate([{ $sample: { size: 3 } }])
           .toArray();
-        res.json(result); // always prefer res.json for APIs
+        }else{
+                result = await tourGuidesCollection.find().toArray()
+        }
+        
+        res.json(result); 
       } catch (error) {
         console.error("Error in /tourGuides:", error);
         res.status(500).json({ message: "Failed to fetch tourGuides" });
       }
     });
+
+    app.get('/tourGuidesProfile/:id', async (req, res) => {
+        const id = req.params.id;
+        const query = {_id : new ObjectId(id)}
+        const result = await tourGuidesCollection.findOne(query)
+        res.json(result)
+    })
+
 
    
 
@@ -118,6 +141,7 @@ async function run() {
         .toArray();
       res.json(stories);
     });
+    
     app.get("/all-stories", async (req, res) => {
       const stories = await touristStoryCollection.find()
         .toArray();
