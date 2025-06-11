@@ -9,7 +9,9 @@ router.post('/', (req, res) => {
                 return res.status(400).json({message: 'Email is required'})
         }
 
-        const token = jwt.sign(user, process.env.JWT_SECRET_KEY, {
+        const token = jwt.sign({email: user.email,
+                role: user.role || "tourist"
+        }, process.env.JWT_SECRET_KEY, {
                 expiresIn: '1h'
         })
 

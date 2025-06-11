@@ -5,8 +5,15 @@ const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
 const port = process.env.PORT || 8000;
-const { MongoClient, ServerApiVersion, ObjectId, ReturnDocument } = require("mongodb");
+const {
+  MongoClient,
+  ServerApiVersion,
+  ObjectId,
+  ReturnDocument,
+} = require("mongodb");
 const jwtRoute = require("./routes/jwtRoute.js");
+const userRoute = require("./routes/userRoute.js");
+const guideRoute = require("./routes/guideRoute.js");
 const verifyToken = require("./middlewares/verifyToken.js");
 
 const corsOptions = {
@@ -21,7 +28,7 @@ app.use(cookieParser());
 app.use(cors(corsOptions));
 app.use(morgan("dev"));
 
-app.use("/jwt", jwtRoute);
+app.use("/api/jwt", jwtRoute);
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.3jtn0.mongodb.net/?appName=Cluster0`;
 
@@ -51,17 +58,19 @@ async function run() {
       .db("ExploreEaseDB")
       .collection("bookings");
 
+      const guideRequestsCollection = client.db('ExploreEaseDB').collection("guideRequests")
+
     // user related apis========================================
     app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
 
-    app.post("/users", async (req, res) => {
+    app.post("/api/users", async (req, res) => {
       const user = req.body;
       const email = user?.email;
 
-      if (!email) {
+      if(!email) {
         return res.status(400).json({ message: "Email is required" });
       }
 
@@ -87,7 +96,13 @@ async function run() {
       }
     });
 
-    // packages related Apis=======================================
+//     user Profile and update user profile===========
+    app.use("/api", userRoute(usersCollection));
+
+    app.use('/api', guideRoute(guideRequestsCollection))
+
+
+    // packages related Apis==============================
     app.get("/package", async (req, res) => {
       try {
         const result = await packagesCollection
@@ -100,54 +115,53 @@ async function run() {
       }
     });
 
-    app.get('/trips', async (req, res) => {
-        const result = await packagesCollection.find().toArray()
-        res.json(result)
-    })
-    app.get('/trips/:id', async (req, res) => {
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await packagesCollection.findOne(query)
-        res.json(result)
-    })
+    app.get("/trips", async (req, res) => {
+      const result = await packagesCollection.find().toArray();
+      res.json(result);
+    });
+    app.get("/trips/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await packagesCollection.findOne(query);
+      res.json(result);
+    });
 
-    app.get('/packages/:id', async (req, res) => {
-        const id = req.params.id
-        const query = {_id: new ObjectId(id)}
-        const result = await packagesCollection.findOne(query)
-        res.json(result)
-    })
+    app.get("/packages/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await packagesCollection.findOne(query);
+      res.json(result);
+    });
 
     //     tourGuides related Apis==============================
     app.get("/tourGuides", async (req, res) => {
-
       try {
         const mode = req.query.mode;
         let result;
-        if(mode === 'random'){
-                 result = await tourGuidesCollection
-          .aggregate([{ $sample: { size: 3 } }])
-          .toArray();
-        }else{
-                result = await tourGuidesCollection.find().toArray()
+        if (mode === "random") {
+          result = await tourGuidesCollection
+            .aggregate([{ $sample: { size: 3 } }])
+            .toArray();
+        } else {
+          result = await tourGuidesCollection.find().toArray();
         }
-        
-        res.json(result); 
+
+        res.json(result);
       } catch (error) {
         console.error("Error in /tourGuides:", error);
         res.status(500).json({ message: "Failed to fetch tourGuides" });
       }
     });
 
-    app.get('/tourGuidesProfile/:id', async (req, res) => {
-        const id = req.params.id;
-        const query = {_id : new ObjectId(id)}
-        const result = await tourGuidesCollection.findOne(query)
-        res.json(result)
-    })
-
-
-   
+    app.get("/tourGuidesProfile/:id", async (req, res) => {
+      const { id } = req.params;
+      if (!id || !ObjectId.isValid(id)) {
+        return res.status(400).send({ error: "Invalid Id Format" });
+      }
+      const query = { _id: new ObjectId(id) };
+      const result = await tourGuidesCollection.findOne(query);
+      res.json(result);
+    });
 
     //     tourist stories related Apis========================
     app.get("/stories", async (req, res) => {
@@ -157,54 +171,56 @@ async function run() {
       res.json(stories);
     });
     app.get("/stories/:id", async (req, res) => {
-        const id = req.params.id;
-        const query = {_id: new ObjectId(id)}
-        const result = await touristStoryCollection.findOne(query)
-        res.json(result)
-      
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await touristStoryCollection.findOne(query);
+      res.json(result);
     });
-    
+
     app.get("/all-stories", async (req, res) => {
-      const stories = await touristStoryCollection.find()
-        .toArray();
+      const stories = await touristStoryCollection.find().toArray();
       res.json(stories);
     });
 
-    app.patch('/stories/:id/like', async (req, res) => {
-        const storyId = req.params.id;
-        const {userEmail} = req.body;
-        const query = {_id: new ObjectId(storyId)}
-        const story = await touristStoryCollection.findOne(query)
-        if(!story.likedBy?.includes(userEmail)){
-                const updatedStory = {$inc: {likes: 1}, 
-        $push: {likedBy: userEmail}}
+    app.patch("/stories/:id/like", async (req, res) => {
+      const storyId = req.params.id;
+      const { userEmail } = req.body;
+      const query = { _id: new ObjectId(storyId) };
+      const story = await touristStoryCollection.findOne(query);
+      if (!story.likedBy?.includes(userEmail)) {
+        const updatedStory = {
+          $inc: { likes: 1 },
+          $push: { likedBy: userEmail },
+        };
 
-        const result = await touristStoryCollection.updateOne(query, updatedStory, {returnDocument: "after"})
-                
-                
-         return res.json({likes: result.value.likes})
-        } else{
-                return res.json({likes: story.likes})
-        }
-        
-    })
+        const result = await touristStoryCollection.updateOne(
+          query,
+          updatedStory,
+          { returnDocument: "after" }
+        );
 
+        return res.json({ likes: result.value.likes });
+      } else {
+        return res.json({ likes: story.likes });
+      }
+    });
 
-//     bookings related Apis===============================
-app.get('/my-bookings/:id', async (req, res) => {
-        const id = req.params.id;
-        const query =  {_id: new ObjectId(id)}
-        const result = await bookingsCollection.findOne(query)
-        res.json(result)
-})
-app.post('/bookings', async (req, res) => {
-        const booking = req.body;
-        const result = await bookingsCollection.insertOne({...booking, status: 'pending'})
-        res.json(result)
-})
+    //     bookings related Apis===============================
+    app.get("/my-bookings/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await bookingsCollection.findOne(query);
+      res.json(result);
+    });
+    app.post("/bookings", async (req, res) => {
+      const booking = req.body;
+      const result = await bookingsCollection.insertOne({
+        ...booking,
+        status: "pending",
+      });
+      res.json(result);
+    });
 
-
-   
     //     );
   } finally {
   }
