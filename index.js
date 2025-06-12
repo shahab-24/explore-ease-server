@@ -1,6 +1,7 @@
 require("dotenv").config();
 const express = require("express");
 const app = express();
+exports.app = app;
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
 const morgan = require("morgan");
@@ -15,6 +16,8 @@ const jwtRoute = require("./routes/jwtRoute.js");
 const userRoute = require("./routes/userRoute.js");
 const guideRoute = require("./routes/guideRoute.js");
 const verifyToken = require("./middlewares/verifyToken.js");
+const packageRoute = require("./routes/packageRoute.js");
+const bookingsRoute = require("./routes/bookingsRoute.js");
 
 const corsOptions = {
   origin: ["http://localhost:5173"],
@@ -58,62 +61,27 @@ async function run() {
       .db("ExploreEaseDB")
       .collection("bookings");
 
-      const guideRequestsCollection = client.db('ExploreEaseDB').collection("guideRequests")
+    const guideRequestsCollection = client
+      .db("ExploreEaseDB")
+      .collection("guideRequests");
 
     // user related apis========================================
-    app.get("/users", async (req, res) => {
-      const result = await usersCollection.find().toArray();
-      res.send(result);
-    });
 
-    app.post("/api/users", async (req, res) => {
-      const user = req.body;
-      const email = user?.email;
-
-      if(!email) {
-        return res.status(400).json({ message: "Email is required" });
-      }
-
-      try {
-        const existingUser = await usersCollection.findOne({ email });
-
-        if (existingUser) {
-          return res.status(409).json({ message: "User already exists" });
-        }
-
-        const result = await usersCollection.insertOne({
-          ...user,
-          role: "tourist",
-        });
-
-        res.status(201).json({
-          message: "User created",
-          userId: result.insertedId,
-        });
-      } catch (err) {
-        console.error("Error inserting user:", err);
-        res.status(500).json({ message: "Internal Server Error" });
-      }
-    });
-
-//     user Profile and update user profile===========
+    //     user Profile and update user profile===========
     app.use("/api", userRoute(usersCollection));
+    app.use("/api", userRoute(usersCollection));
+    app.post("/api", userRoute(usersCollection));
 
-    app.use('/api', guideRoute(guideRequestsCollection))
-
+    app.use("/api", guideRoute(guideRequestsCollection));
 
     // packages related Apis==============================
-    app.get("/package", async (req, res) => {
-      try {
-        const result = await packagesCollection
-          .aggregate([{ $sample: { size: 3 } }])
-          .toArray();
-        res.json(result); // always prefer res.json for APIs
-      } catch (error) {
-        console.error("Error in /packages:", error);
-        res.status(500).json({ message: "Failed to fetch packages" });
-      }
-    });
+    app.use("/api", packageRoute(packagesCollection));
+    app.use("/api", packageRoute(packagesCollection));
+
+    app.use('/api', bookingsRoute(bookingsCollection))
+
+
+
 
     app.get("/trips", async (req, res) => {
       const result = await packagesCollection.find().toArray();
@@ -126,15 +94,8 @@ async function run() {
       res.json(result);
     });
 
-    app.get("/packages/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await packagesCollection.findOne(query);
-      res.json(result);
-    });
-
     //     tourGuides related Apis==============================
-    app.get("/tourGuides", async (req, res) => {
+    app.get("/api/tourGuides", async (req, res) => {
       try {
         const mode = req.query.mode;
         let result;
@@ -153,7 +114,7 @@ async function run() {
       }
     });
 
-    app.get("/tourGuidesProfile/:id", async (req, res) => {
+    app.get("/api/tourGuidesProfile/:id", async (req, res) => {
       const { id } = req.params;
       if (!id || !ObjectId.isValid(id)) {
         return res.status(400).send({ error: "Invalid Id Format" });
@@ -206,13 +167,15 @@ async function run() {
     });
 
     //     bookings related Apis===============================
-    app.get("/my-bookings/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await bookingsCollection.findOne(query);
-      res.json(result);
-    });
-    app.post("/bookings", async (req, res) => {
+//     app.get("/api/my-bookings/:id", async (req, res) => {
+//       const id = req.params.id;
+//       const query = { _id: new ObjectId(id) };
+//       const result = await bookingsCollection.findOne(query);
+//       res.json(result);
+//     });
+
+
+    app.post("/api/bookings", async (req, res) => {
       const booking = req.body;
       const result = await bookingsCollection.insertOne({
         ...booking,
