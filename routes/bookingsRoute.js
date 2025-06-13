@@ -1,9 +1,10 @@
 const express = require("express");
 const verifyToken = require("../middlewares/verifyToken");
+
 const router = express.Router();
 
 module.exports = function (bookingsCollection) {
-  router.get("/bookings", verifyToken ,async (req, res) => {
+  router.get("/bookings", verifyToken , async(req, res) => {
     try {
       const email = req.query?.email;
       let query = {};
@@ -20,5 +21,16 @@ module.exports = function (bookingsCollection) {
 
     
   });
+
+  router.post('/bookings', verifyToken, async( req, res) => {
+         
+      const booking = req.body;
+      const result = await bookingsCollection.insertOne({
+        ...booking,
+        status: "pending",
+      });
+      res.json(result);
+   
+  })
   return router
 };

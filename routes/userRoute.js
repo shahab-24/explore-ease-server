@@ -2,7 +2,7 @@ const express = require("express");
 const { ObjectId, ReturnDocument } = require("mongodb");
 const verifyToken = require("../middlewares/verifyToken");
 const { app } = require("..");
-const guideRoute = require("./guideRoute");
+const guideRoute = require("./guideRequestRoute");
 const packageRoute = require("./packageRoute");
 
 module.exports = function (usersCollection) {
