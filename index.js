@@ -85,9 +85,8 @@ async function run() {
     //     stories related Apis==============================
     app.use("/api", storyRoute(touristStoryCollection));
 
-//     tourguide related apis==============================
- app.use("/api", tourGuide(tourGuidesCollection));
-
+    //     tourguide related apis==============================
+    app.use("/api", tourGuide(tourGuidesCollection));
 
     app.get("/trips", async (req, res) => {
       const result = await packagesCollection.find().toArray();
@@ -100,16 +99,14 @@ async function run() {
       res.json(result);
     });
 
-
-
     //     tourist stories related Apis========================
 
-    app.get("/stories/:id", async (req, res) => {
-      const id = req.params.id;
-      const query = { _id: new ObjectId(id) };
-      const result = await touristStoryCollection.findOne(query);
-      res.json(result);
-    });
+    //     app.get("/stories/:id", async (req, res) => {
+    //       const id = req.params.id;
+    //       const query = { _id: new ObjectId(id) };
+    //       const result = await touristStoryCollection.findOne(query);
+    //       res.json(result);
+    //     });
 
     app.get("/all-stories", async (req, res) => {
       const stories = await touristStoryCollection.find().toArray();
