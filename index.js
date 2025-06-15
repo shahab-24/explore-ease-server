@@ -16,6 +16,7 @@ const jwtRoute = require("./routes/jwtRoute.js");
 const userRoute = require("./routes/userRoute.js");
 const guideRequestRoute = require("./routes/guideRequestRoute.js");
 const verifyToken = require("./middlewares/verifyToken.js");
+const verifyAdmin = require("./middlewares/verifyAdmin.js");
 const packageRoute = require("./routes/packageRoute.js");
 const bookingsRoute = require("./routes/bookingsRoute.js");
 const storyRoute = require("./routes/storyRoute.js");
@@ -65,7 +66,7 @@ async function run() {
 
     const guideRequestsCollection = client.db('ExploreEaseDB').collection("guideRequests")
 
-    
+    app.locals.usersCollection = usersCollection;
 
     //     user Profile and update user profile===========
     app.use("/api", userRoute(usersCollection, packagesCollection));
