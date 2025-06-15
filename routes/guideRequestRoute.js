@@ -4,6 +4,7 @@ const verifyToken = require("../middlewares/verifyToken");
 
 module.exports = function (guideRequestsCollection) {
   router.post("/guide-requests", verifyToken, async (req, res) => {
+//     console.log("Incoming request body:", req.body);
     const { userEmail, title, reason, cvLink, status, appliedAt } = req.body;
 
     if (!userEmail || !title || !reason || !cvLink) {

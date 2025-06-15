@@ -1,12 +1,16 @@
 const express = require("express");
 const { ObjectId } = require("mongodb");
+const verifyToken = require("../middlewares/verifyToken");
 const router = express.Router();
 
 module.exports = function (tourGuidesCollection) {
-  router.get("/tourGuides", async (req, res) => {
+        
+  router.get("/tourGuides", verifyToken, async (req, res) => {
     try {
       const mode = req.query.mode;
+
       let result;
+
       if (mode === "random") {
         result = await tourGuidesCollection
           .aggregate([{ $sample: { size: 3 } }])

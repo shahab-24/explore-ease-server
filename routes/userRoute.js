@@ -4,24 +4,60 @@ const verifyToken = require("../middlewares/verifyToken");
 const { app } = require("..");
 const guideRoute = require("./guideRequestRoute");
 const packageRoute = require("./packageRoute");
+const router = express.Router();
+module.exports = function (usersCollection, packagesCollection) {
+        
+  router.get("/users/role", verifyToken, async (req, res) => {
+    try {
+      const email = req.query.email;
+      if (!email || email !== req.user.email) {
+        return res.status(403).json({ message: "Access denied" });
+      }
+      const user = await usersCollection.findOne({ email });
 
-module.exports = function (usersCollection) {
-  const router = express.Router();
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      res.json({ role: user.role });
+    } catch (error) {
+      console.log("fetching error user role", error);
+    }
+  });
 
   router.get("/users/profile", verifyToken, async (req, res) => {
     // const {id} = req.params;
-    const { email } = req.query;
-    const user = await usersCollection.findOne({ email });
-    res.json(user);
+    //     const { email } = req.query;
+    //     const user = await usersCollection.findOne({ email });
+    //     res.json(user);
+    try {
+      // route
+
+      const email = req.query.email;
+
+      if (req.user.email !== email) {
+        return res.status(403).send({ message: "Access denied" });
+      }
+
+      const user = await usersCollection.findOne({ email });
+      res.json(user);
+    } catch (error) {
+      console.log(error, "in user profile");
+    }
   });
 
   router.put("/users/profile", verifyToken, async (req, res) => {
     //     const { id } = req.params;
     const { email, name, photo, phone, address } = req.body;
 
+    const existingUser = await usersCollection.findOne({ email });
+
     if (req.user.email != email)
       return res.status(400).json({ message: "forbidden, token mismatch" });
 
+    if (!existingUser) {
+      return res.status(404).json({ message: "user not found" });
+    }
     //     const query = { _id: new ObjectId(id) };
 
     const updatedDoc = {
@@ -30,6 +66,7 @@ module.exports = function (usersCollection) {
         photo,
         phone,
         address,
+        role: existingUser.role,
       },
     };
     try {
@@ -81,6 +118,8 @@ module.exports = function (usersCollection) {
       res.status(500).json({ message: "Internal Server Error" });
     }
   });
+
+  
 
   return router;
 };

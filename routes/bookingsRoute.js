@@ -32,5 +32,22 @@ module.exports = function (bookingsCollection) {
       res.json(result);
    
   })
+
+//   guide assigned api=======
+router.get("/bookings/assigned", async (req, res) => {
+        const guide = req.query.guide;
+        const result = await bookingsCollection.find({ guideName: guide }).toArray();
+        res.json(result);
+      });
+
+      router.patch("/bookings/:id/status", async (req, res) => {
+        const id = req.params.id;
+        const { status } = req.body;
+        const result = await bookingsCollection.updateOne(
+          { _id: new ObjectId(id) },
+          { $set: { status } }
+        );
+        res.json(result);
+      });
   return router
 };

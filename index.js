@@ -20,6 +20,7 @@ const packageRoute = require("./routes/packageRoute.js");
 const bookingsRoute = require("./routes/bookingsRoute.js");
 const storyRoute = require("./routes/storyRoute.js");
 const tourGuide = require("./routes/tourGuide.js");
+const adminRoute = require("./routes/adminRoute.js");
 
 const corsOptions = {
   origin: ["http://localhost:5173"],
@@ -62,31 +63,32 @@ async function run() {
       .db("ExploreEaseDB")
       .collection("bookings");
 
-    const guideRequestsCollection = client;
+    const guideRequestsCollection = client.db('ExploreEaseDB').collection("guideRequests")
 
-    // user related apis========================================
+    
 
     //     user Profile and update user profile===========
-    app.use("/api", userRoute(usersCollection));
-    //     app.use("/api", userRoute(usersCollection));
-    //     app.post("/api", userRoute(usersCollection));
+    app.use("/api", userRoute(usersCollection, packagesCollection));
 
+    app.use('/api', adminRoute(usersCollection, packagesCollection, guideRequestsCollection, tourGuidesCollection, touristStoryCollection))
+   
+// guide request relatd================
     app.use("/api", guideRequestRoute(guideRequestsCollection));
 
     // packages related Apis==============================
     app.use("/api", packageRoute(packagesCollection));
-    //     app.use("/api", packageRoute(packagesCollection));
-
+  
     //     bookings related Apis============================
     app.use("/api", bookingsRoute(bookingsCollection));
 
-    //     app.use('/api', bookingsRoute(bookingsCollection))
 
     //     stories related Apis==============================
     app.use("/api", storyRoute(touristStoryCollection));
 
-    //     tourguide related apis==============================
+    //     tourGuide related apis==============================
     app.use("/api", tourGuide(tourGuidesCollection));
+
+
 
     app.get("/trips", async (req, res) => {
       const result = await packagesCollection.find().toArray();
@@ -99,14 +101,7 @@ async function run() {
       res.json(result);
     });
 
-    //     tourist stories related Apis========================
-
-    //     app.get("/stories/:id", async (req, res) => {
-    //       const id = req.params.id;
-    //       const query = { _id: new ObjectId(id) };
-    //       const result = await touristStoryCollection.findOne(query);
-    //       res.json(result);
-    //     });
+    
 
     app.get("/all-stories", async (req, res) => {
       const stories = await touristStoryCollection.find().toArray();
@@ -136,7 +131,6 @@ async function run() {
       }
     });
 
-    //     bookings related Apis===============================
     //     app.get("/api/my-bookings/:id", async (req, res) => {
     //       const id = req.params.id;
     //       const query = { _id: new ObjectId(id) };

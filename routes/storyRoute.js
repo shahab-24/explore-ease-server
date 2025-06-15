@@ -18,12 +18,12 @@ module.exports = function (touristStoryCollection) {
     }
   });
 
-  router.get("/:id", verifyToken, async (req, res) => {
-    const story = await touristStoryCollection.findOne({
-      _id: new ObjectId(req.params.id),
-    });
-    res.json(story);
-  });
+//   router.get("/:id", verifyToken, async (req, res) => {
+//     const story = await touristStoryCollection.findOne(
+//         {_id: new ObjectId(req.params.id)}
+// );
+//     res.json(story);
+//   });
 
   router.get("/stories/random", async (req, res) => {
     const stories = await touristStoryCollection
