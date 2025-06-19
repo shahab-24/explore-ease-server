@@ -8,18 +8,21 @@ const router = express.Router();
 module.exports = function (usersCollection, packagesCollection) {
         
   router.get("/users/role", verifyToken, async (req, res) => {
+        // console.log('user role route hit')
     try {
-      const email = req.query.email;
-      if (!email || email !== req.user.email) {
+      const email = req.query?.email?.toLowerCase();
+
+      if (!email || email !== req.user.email.toLowerCase()) {
         return res.status(403).json({ message: "Access denied" });
       }
-      const user = await usersCollection.findOne({ email });
+      const user = await usersCollection.findOne({ email : {$regex: new RegExp(`^${email}$`, 'i') }})
+//       console.log(user.role)
 
       if (!user) {
         return res.status(404).json({ message: "User not found" });
       }
 
-      res.json({ role: user.role });
+      res.json({ role: user?.role });
     } catch (error) {
       console.log("fetching error user role", error);
     }
@@ -33,9 +36,9 @@ module.exports = function (usersCollection, packagesCollection) {
     try {
       // route
 
-      const email = req.query.email;
+      const email = req.query?.email.toLowerCase();
 
-      if (req.user.email !== email) {
+      if (req.user.email.toLowerCase() !== email) {
         return res.status(403).send({ message: "Access denied" });
       }
 
@@ -91,7 +94,7 @@ module.exports = function (usersCollection, packagesCollection) {
 
   router.post("/users", async (req, res) => {
     const user = req.body;
-    const email = user?.email;
+    const email = user?.email.toLowerCase();
 
     if (!email) {
       return res.status(400).json({ message: "Email is required" });

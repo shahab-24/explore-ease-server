@@ -1,11 +1,12 @@
 const express = require("express");
 const { ObjectId } = require("mongodb");
 const verifyToken = require("../middlewares/verifyToken");
+const bookingsRoute = require("./bookingsRoute");
 const router = express.Router();
 
-module.exports = function (tourGuidesCollection) {
+module.exports = function (tourGuidesCollection,bookingsCollection) {
         
-  router.get("/tourGuides", verifyToken, async (req, res) => {
+  router.get("/tourGuides", async (req, res) => {
     try {
       const mode = req.query.mode;
 
@@ -39,6 +40,21 @@ module.exports = function (tourGuidesCollection) {
       console.log("tourguide profile error", error);
     }
   });
+
+  router.get('/tourGuide/assingned-tours', verifyToken, async ( req, res) => {
+        const tourGuide =req.query.name;
+        if(!tourGuide) return res.status(400).json({error: "tourGuide not found" })
+
+                const tours = await bookingsCollection.find({tourGuide}).toArray()
+                res.json(tours)
+  })
+  router.patch('/tourGuide/assigned-tours/:id', verifyToken, async (req, res) => {
+        const {status} = req.body;
+        const {id} = req.params;
+        const result = await bookingsCollection.updateOne({_id: new ObjectId(id)}, {$set: {status}})
+        res.json(result)
+  })
+
 
   return router;
 };

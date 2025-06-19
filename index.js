@@ -24,7 +24,7 @@ const tourGuide = require("./routes/tourGuide.js");
 const adminRoute = require("./routes/adminRoute.js");
 
 const corsOptions = {
-  origin: ["http://localhost:5173"],
+  origin: ["http://localhost:5173", "http://localhost:5175", "https://explore-ease-client.vercel.app", "https://exploreease-client.web.app"],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   allowedHeaders: ["Content-Type", "Authorization"],
@@ -87,7 +87,7 @@ async function run() {
     app.use("/api", storyRoute(touristStoryCollection));
 
     //     tourGuide related apis==============================
-    app.use("/api", tourGuide(tourGuidesCollection));
+    app.use("/api", tourGuide(tourGuidesCollection, bookingsCollection));
 
 
 
