@@ -76,10 +76,10 @@ module.exports = function (touristStoryCollection) {
     }
   });
 
-  router.patch("/:id/remove-image", verifyToken, async (req, res) => {
+  router.patch("/stories/:id/remove-image", verifyToken, async (req, res) => {
     try {
       const { url } = req.body;
-      const result = await storyCollection.updateOne(
+      const result = await touristStoryCollection.updateOne(
         { _id: new ObjectId(req.params.id) },
         { $pull: { images: url } }
       );

@@ -1,7 +1,7 @@
 
 const verifyAdmin = async (req, res, next) => {
         const usersCollection = req.app.locals.usersCollection
-        const userEmail = req.user.email;
+        const userEmail = req.user?.email;
         if(!userEmail){
                 return res.status(401).json({ error: "Unauthorized access" });
             }

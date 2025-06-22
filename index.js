@@ -22,6 +22,7 @@ const bookingsRoute = require("./routes/bookingsRoute.js");
 const storyRoute = require("./routes/storyRoute.js");
 const tourGuide = require("./routes/tourGuide.js");
 const adminRoute = require("./routes/adminRoute.js");
+const paymentRoute = require("./routes/paymentRoute.js");
 
 const corsOptions = {
   origin: ["http://localhost:5173", "http://localhost:5175", "https://explore-ease-client.vercel.app", "https://exploreease-client.web.app"],
@@ -53,9 +54,11 @@ async function run() {
     const packagesCollection = client
       .db("ExploreEaseDB")
       .collection("packages");
+      
     const tourGuidesCollection = client
       .db("ExploreEaseDB")
       .collection("tourGuides");
+
     const touristStoryCollection = client
       .db("ExploreEaseDB")
       .collection("touristStories");
@@ -81,6 +84,7 @@ async function run() {
   
     //     bookings related Apis============================
     app.use("/api", bookingsRoute(bookingsCollection));
+    app.use("/api", paymentRoute(bookingsCollection));
 
 
     //     stories related Apis==============================

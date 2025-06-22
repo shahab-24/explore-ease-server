@@ -10,7 +10,7 @@ module.exports = function (usersCollection, packagesCollection) {
   router.get("/users/role", verifyToken, async (req, res) => {
         // console.log('user role route hit')
     try {
-      const email = req.query?.email?.toLowerCase();
+      const email = req.query?.email.toLowerCase();
 
       if (!email || email !== req.user.email.toLowerCase()) {
         return res.status(403).json({ message: "Access denied" });
